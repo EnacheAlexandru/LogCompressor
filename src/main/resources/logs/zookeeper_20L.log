@@ -4,7 +4,7 @@
 2015-07-29 17:41:41,555 - INFO  [main:DatadirCleanupManager@79] - autopurge.purgeInterval set to 0
 2015-07-29 17:41:41,557 - INFO  [main:DatadirCleanupManager@101] - Purge task is not scheduled.
 2015-07-29 17:41:41,579 - INFO  [main:QuorumPeerMain@127] - Starting quorum peer
-2015-07-29 17:41:41,609 - INFO  [main:NIOServerCnxnFactory@94] - binding to port 0.0.0.0/0.0.0.0:2181
+2015-07-29 17:41:41,609 - WARN  [main:NIOServerCnxnFactory@94] - binding to port 0.0.0.0/0.0.0.0:2181
 2015-07-29 17:41:41,648 - INFO  [main:QuorumPeer@913] - tickTime set to 2000
 2015-07-29 17:41:41,649 - INFO  [main:QuorumPeer@933] - minSessionTimeout set to -1
 2015-07-29 17:41:41,649 - INFO  [main:QuorumPeer@944] - maxSessionTimeout set to -1

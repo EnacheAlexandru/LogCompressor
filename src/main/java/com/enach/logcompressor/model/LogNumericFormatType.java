@@ -1,5 +1,6 @@
 package com.enach.logcompressor.model;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,6 +18,7 @@ public class LogNumericFormatType {
 
     private Long current;
 
+    @Setter(AccessLevel.NONE)
     private List<Long> deltaList;
 
 }

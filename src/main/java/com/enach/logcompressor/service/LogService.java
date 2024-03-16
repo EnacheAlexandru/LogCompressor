@@ -1,9 +1,6 @@
 package com.enach.logcompressor.service;
 
-import com.enach.logcompressor.model.LogFormat;
-import com.enach.logcompressor.model.LogFormatType;
-import com.enach.logcompressor.model.LogNumericFormatType;
-import com.enach.logcompressor.model.LogRepetitiveFormatType;
+import com.enach.logcompressor.model.*;
 import com.enach.logcompressor.repository.LogRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.logging.Log;
@@ -52,11 +49,14 @@ public class LogService {
                 int group = 1;
                 int repGroup = 0;
                 int numGroup = 0;
+                int dictGroup = 0;
                 for (String formatType : logFormat.getFormatTypeList()) {
                     if (LogFormatType.REP.getFormatType().equals(formatType)) {
                         handleLogRepetitiveFormatType(repGroup++, matcher.group(group));
                     } else if (LogFormatType.NUM.getFormatType().equals(formatType)) {
                         handleLogNumericFormatType(numGroup++, matcher.group(group));
+                    } else if (LogFormatType.DICT.getFormatType().equals(formatType)) {
+                        handleLogDictionaryFormatType(dictGroup++, matcher.group(group));
                     }
                     group++;
                 }
@@ -110,6 +110,7 @@ public class LogService {
 
     private void handleLogNumericFormatType(int numGroup, String key) {
         List<LogNumericFormatType> list = logRepository.getLogNumericFormatTypeList();
+
         String strNumber = key.replaceAll("[:,.]", "");
         Long number = Long.parseLong(strNumber);
 
@@ -121,6 +122,24 @@ public class LogService {
             numFormatType = list.get(numGroup);
             numFormatType.getDeltaList().add(number - numFormatType.getCurrent());
             numFormatType.setCurrent(number);
+        }
+    }
+
+    private void handleLogDictionaryFormatType(int dictGroup, String key) {
+        List<LogDictionaryFormatType> list = logRepository.getLogDictionaryFormatTypeList();
+
+        LogDictionaryFormatType dictFormatType;
+        if (dictGroup == list.size()) {
+            Map<String, Long> keyMap = new HashMap<>();
+            keyMap.put(key, 0L);
+            dictFormatType = new LogDictionaryFormatType(keyMap, new ArrayList<>(List.of(0L)));
+            list.add(dictFormatType);
+        } else {
+            dictFormatType = list.get(dictGroup);
+            if (!dictFormatType.getKeyMap().containsKey(key)) {
+                dictFormatType.getKeyMap().put(key, (long) dictFormatType.getKeyMap().size());
+            }
+            dictFormatType.getOrderList().add(dictFormatType.getKeyMap().get(key));
         }
     }
 }
