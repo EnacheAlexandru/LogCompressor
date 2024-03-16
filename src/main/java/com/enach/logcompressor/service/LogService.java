@@ -2,6 +2,7 @@ package com.enach.logcompressor.service;
 
 import com.enach.logcompressor.model.LogFormat;
 import com.enach.logcompressor.model.LogFormatType;
+import com.enach.logcompressor.model.LogNumericFormatType;
 import com.enach.logcompressor.model.LogRepetitiveFormatType;
 import com.enach.logcompressor.repository.LogRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,10 +14,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,10 +51,12 @@ public class LogService {
             if (matcher.find()) {
                 int group = 1;
                 int repGroup = 0;
+                int numGroup = 0;
                 for (String formatType : logFormat.getFormatTypeList()) {
                     if (LogFormatType.REP.getFormatType().equals(formatType)) {
-                        handleLogRepetitiveFormatType(repGroup, matcher.group(group));
-                        repGroup++;
+                        handleLogRepetitiveFormatType(repGroup++, matcher.group(group));
+                    } else if (LogFormatType.NUM.getFormatType().equals(formatType)) {
+                        handleLogNumericFormatType(numGroup++, matcher.group(group));
                     }
                     group++;
                 }
@@ -87,18 +87,40 @@ public class LogService {
     }
 
     private void handleLogRepetitiveFormatType(int repGroup, String key) {
-        List<SortedMap<String, Long>> list = logRepository.getLogRepetitiveFormatTypeList();
+        List<List<LogRepetitiveFormatType>> list = logRepository.getLogRepetitiveFormatTypeList();
+
+        LogRepetitiveFormatType repFormatType;
+        List<LogRepetitiveFormatType> groupList;
         if (repGroup == list.size()) {
-            SortedMap<String, Long> map = new TreeMap<>();
-            map.put(key, 1L);
-            list.add(map);
+            groupList = new ArrayList<>();
+            repFormatType = new LogRepetitiveFormatType(key, 1L);
+            groupList.add(repFormatType);
+            list.add(groupList);
         } else {
-            SortedMap<String, Long> map = list.get(repGroup);
-            if (map.containsKey(key)) {
-                map.put(key, map.get(key) + 1);
+            groupList = list.get(repGroup);
+            repFormatType = groupList.get(groupList.size() - 1);
+            if (key.equals(repFormatType.getKey())) {
+                repFormatType.setTimes(repFormatType.getTimes() + 1);
             } else {
-                map.put(key, 1L);
+                LogRepetitiveFormatType newRepFormatType = new LogRepetitiveFormatType(key, 1L);
+                groupList.add(newRepFormatType);
             }
+        }
+    }
+
+    private void handleLogNumericFormatType(int numGroup, String key) {
+        List<LogNumericFormatType> list = logRepository.getLogNumericFormatTypeList();
+        String strNumber = key.replaceAll("[:,.]", "");
+        Long number = Long.parseLong(strNumber);
+
+        LogNumericFormatType numFormatType;
+        if (numGroup == list.size()) {
+            numFormatType = new LogNumericFormatType(key, number, number, new ArrayList<>(List.of(0L)));
+            list.add(numFormatType);
+        } else {
+            numFormatType = list.get(numGroup);
+            numFormatType.getDeltaList().add(number - numFormatType.getCurrent());
+            numFormatType.setCurrent(number);
         }
     }
 }

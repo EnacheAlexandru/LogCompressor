@@ -2,6 +2,7 @@ package com.enach.logcompressor.repository;
 
 import com.enach.logcompressor.model.LogFormat;
 import com.enach.logcompressor.model.LogDictionaryFormatType;
+import com.enach.logcompressor.model.LogNumericFormatType;
 import com.enach.logcompressor.model.LogRepetitiveFormatType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -32,11 +33,13 @@ public class LogRepository implements ApplicationRunner {
 
 	// === \/ FORMAT TYPES \/ ===
 
+	// wrapped in lists because of groups
+
 	// rep
-	private final List<SortedMap<String, Long>> logRepetitiveFormatTypeList = new ArrayList<>();
+	private final List<List<LogRepetitiveFormatType>> logRepetitiveFormatTypeList = new ArrayList<>();
 
 	// num
-	private final List<Long> logNumberFormatTypeList = new ArrayList<>();
+	private final List<LogNumericFormatType> logNumericFormatTypeList = new ArrayList<>();
 
 	// dict
 	private final List<LogDictionaryFormatType> logDictionaryFormatTypeList = new ArrayList<>();
@@ -45,7 +48,7 @@ public class LogRepository implements ApplicationRunner {
 	private final List<String> logMessageFormatTypeList = new ArrayList<>();
 
 	// lines that do not match any format
-	private final Map<Long, String> logNotMatchFormatTypeMap = new HashMap<>();
+	private final Map<Long, String> logNotMatchFormatTypeList = new HashMap<>();
 
 	// === /\ FORMAT TYPES /\ ===
 
@@ -58,7 +61,7 @@ public class LogRepository implements ApplicationRunner {
 			}
 			BufferedReader reader = new BufferedReader(new FileReader(logFormatUrl.getFile()));
 			String line;
-			while((line = reader.readLine()) != null) {
+			while ((line = reader.readLine()) != null) {
 				String name = line;
 				line = reader.readLine();
 				String regex = line;
