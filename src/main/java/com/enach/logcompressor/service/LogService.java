@@ -50,6 +50,7 @@ public class LogService {
                 int repGroup = 0;
                 int numGroup = 0;
                 int dictGroup = 0;
+                int msgGroup = 0;
                 for (String formatType : logFormat.getFormatTypeList()) {
                     if (LogFormatType.REP.getFormatType().equals(formatType)) {
                         handleLogRepetitiveFormatType(repGroup++, matcher.group(group));
@@ -57,6 +58,8 @@ public class LogService {
                         handleLogNumericFormatType(numGroup++, matcher.group(group));
                     } else if (LogFormatType.DICT.getFormatType().equals(formatType)) {
                         handleLogDictionaryFormatType(dictGroup++, matcher.group(group));
+                    } else if (LogFormatType.MSG.getFormatType().equals(formatType)) {
+                        handleLogMessageFormatType(msgGroup++, matcher.group(group));
                     }
                     group++;
                 }
@@ -140,6 +143,19 @@ public class LogService {
                 dictFormatType.getKeyMap().put(key, (long) dictFormatType.getKeyMap().size());
             }
             dictFormatType.getOrderList().add(dictFormatType.getKeyMap().get(key));
+        }
+    }
+
+    private void handleLogMessageFormatType(int msgGroup, String key) {
+        List<List<String>> list = logRepository.getLogMessageFormatTypeList();
+
+        List<String> groupList;
+        if (msgGroup == list.size()) {
+            groupList = new ArrayList<>(List.of(key));
+            list.add(groupList);
+        } else {
+            groupList = list.get(msgGroup);
+            groupList.add(key);
         }
     }
 }

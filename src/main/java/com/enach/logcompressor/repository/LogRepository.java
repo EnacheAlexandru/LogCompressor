@@ -45,7 +45,7 @@ public class LogRepository implements ApplicationRunner {
 	private final List<LogDictionaryFormatType> logDictionaryFormatTypeList = new ArrayList<>();
 
 	// msg
-	private final List<String> logMessageFormatTypeList = new ArrayList<>();
+	private final List<List<String>> logMessageFormatTypeList = new ArrayList<>();
 
 	// lines that do not match any format
 	private final Map<Long, String> logNotMatchFormatTypeList = new HashMap<>();
