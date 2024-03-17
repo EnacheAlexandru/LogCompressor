@@ -27,6 +27,7 @@ public class LogService {
         logger.info("Starting compressing file...");
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         String line = reader.readLine();
+        long currentLine = 0;
 
         // first line has to match one of the formats in order to select the appropriate format
         LogFormat logFormat = matchLogFormat(line);
@@ -39,6 +40,7 @@ public class LogService {
         while (true) {
             if (isFirstLineProcessed) {
                 line = reader.readLine();
+                currentLine++;
             }
             if (line == null) {
                 break;
@@ -63,6 +65,8 @@ public class LogService {
                     }
                     group++;
                 }
+            } else {
+                handleLogNoMatchFormatType(currentLine, line);
             }
 
             if (!isFirstLineProcessed) {
@@ -157,5 +161,14 @@ public class LogService {
             groupList = list.get(msgGroup);
             groupList.add(key);
         }
+    }
+
+    private void handleLogNoMatchFormatType(long currentLine, String line) {
+        Map<Long, String> map = logRepository.getLogNoMatchFormatTypeMap();
+        map.put(currentLine, line);
+    }
+
+    public void clearFormatType() {
+        logRepository.clearFormatType();
     }
 }

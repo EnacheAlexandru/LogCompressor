@@ -33,6 +33,8 @@ public class LogController {
         } catch (Exception e) {
             logger.error("Error while trying to compress file!");
             return ResponseEntity.badRequest().build();
+        } finally {
+            logService.clearFormatType();
         }
     }
 }

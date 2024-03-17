@@ -48,7 +48,7 @@ public class LogRepository implements ApplicationRunner {
 	private final List<List<String>> logMessageFormatTypeList = new ArrayList<>();
 
 	// lines that do not match any format
-	private final Map<Long, String> logNotMatchFormatTypeList = new HashMap<>();
+	private final Map<Long, String> logNoMatchFormatTypeMap = new HashMap<>();
 
 	// === /\ FORMAT TYPES /\ ===
 
@@ -75,4 +75,12 @@ public class LogRepository implements ApplicationRunner {
             System.exit(0);
 		}
     }
+
+	public void clearFormatType() {
+		logRepetitiveFormatTypeList.clear();
+		logNumericFormatTypeList.clear();
+		logDictionaryFormatTypeList.clear();
+		logMessageFormatTypeList.clear();
+		logNoMatchFormatTypeMap.clear();
+	}
 }
