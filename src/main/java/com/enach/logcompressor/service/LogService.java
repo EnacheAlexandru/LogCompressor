@@ -5,12 +5,10 @@ import com.enach.logcompressor.repository.LogRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,63 +17,84 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class LogService {
 
+    @Value("${logcompressor.compressed.log.filename}")
+    private String COMPRESSED_LOG_FILENAME;
+
+    @Value("${logcompressor.newline.marker}")
+    private String NEWLINE_MARKER;
+
     private final LogRepository logRepository;
 
     private static final Log logger = LogFactory.getLog(LogService.class);
 
-    public String compressLogFile(InputStream inputStream) throws IOException {
-        logger.info("Starting compressing file...");
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-        String line = reader.readLine();
-        long currentLine = 0;
+    public void compress(InputStream inputStream) throws IOException {
+        logger.info("Starting processing compression...");
 
-        // first line has to match one of the formats in order to select the appropriate format
-        LogFormat logFormat = matchLogFormat(line);
-        if (logFormat == null) {
-            return null;
-        }
+        LogFormat logFormat;
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new InputStreamReader(inputStream));
+            String line = reader.readLine();
+            long currentLine = 0;
 
-        Pattern pattern = Pattern.compile(logFormat.getRegex());
-        boolean isFirstLineProcessed = false;
-        while (true) {
-            if (isFirstLineProcessed) {
-                line = reader.readLine();
-                currentLine++;
-            }
-            if (line == null) {
-                break;
+            // first line has to match one of the formats in order to select the appropriate format
+            logFormat = matchLogFormat(line);
+            if (logFormat == null) {
+                throw new IOException();
             }
 
-            Matcher matcher = pattern.matcher(line);
-            if (matcher.find()) {
-                int group = 1;
-                int repGroup = 0;
-                int numGroup = 0;
-                int dictGroup = 0;
-                int msgGroup = 0;
-                for (String formatType : logFormat.getFormatTypeList()) {
-                    if (LogFormatType.REP.getFormatType().equals(formatType)) {
-                        handleLogRepetitiveFormatType(repGroup++, matcher.group(group));
-                    } else if (LogFormatType.NUM.getFormatType().equals(formatType)) {
-                        handleLogNumericFormatType(numGroup++, matcher.group(group));
-                    } else if (LogFormatType.DICT.getFormatType().equals(formatType)) {
-                        handleLogDictionaryFormatType(dictGroup++, matcher.group(group));
-                    } else if (LogFormatType.MSG.getFormatType().equals(formatType)) {
-                        handleLogMessageFormatType(msgGroup++, matcher.group(group));
-                    }
-                    group++;
+            Pattern pattern = Pattern.compile(logFormat.getRegex());
+            boolean isFirstLineProcessed = false;
+            while (true) {
+                if (isFirstLineProcessed) {
+                    line = reader.readLine();
+                    currentLine++;
                 }
-            } else {
-                handleLogNoMatchFormatType(currentLine, line);
+                if (line == null) {
+                    break;
+                }
+
+                Matcher matcher = pattern.matcher(line);
+                if (matcher.find()) {
+                    int group = 1;
+                    int repGroup = 0;
+                    int numGroup = 0;
+                    int dictGroup = 0;
+                    int msgGroup = 0;
+                    for (String formatType : logFormat.getFormatTypeList()) {
+                        if (LogFormatType.REP.getFormatType().equals(formatType)) {
+                            handleLogRepetitiveFormatType(repGroup++, matcher.group(group));
+                        } else if (LogFormatType.NUM.getFormatType().equals(formatType)) {
+                            handleLogNumericFormatType(numGroup++, matcher.group(group));
+                        } else if (LogFormatType.DICT.getFormatType().equals(formatType)) {
+                            handleLogDictionaryFormatType(dictGroup++, matcher.group(group));
+                        } else if (LogFormatType.MSG.getFormatType().equals(formatType)) {
+                            handleLogMessageFormatType(msgGroup++, matcher.group(group));
+                        }
+                        group++;
+                    }
+                } else {
+                    handleLogNoMatchFormatType(currentLine, line);
+                }
+
+                if (!isFirstLineProcessed) {
+                    isFirstLineProcessed = true;
+                }
             }
 
-            if (!isFirstLineProcessed) {
-                isFirstLineProcessed = true;
+            reader.close();
+        } catch (Exception e) {
+            if (reader != null) {
+                reader.close();
             }
+            throw new IOException();
         }
 
-        logger.info("File compressed successfully!");
-        return "lol";
+        logger.info("Compression processed successfully!");
+
+        logger.info("Starting exporting compressed log...");
+        exportCompressedLog(logFormat);
+        logger.info("Compressed log exported successfully!");
     }
 
     private LogFormat matchLogFormat(String line) {
@@ -84,12 +103,12 @@ public class LogService {
             Pattern pattern = Pattern.compile(logFormat.getRegex());
             Matcher matcher = pattern.matcher(line);
             if (matcher.matches()) {
-                logger.info("Matched with '" + name + "' format");
+                logger.info("Matched with '" + name + "' format!");
                 return logFormat;
             }
         }
 
-        logger.warn("Did not match with any format");
+        logger.warn("Did not match with any format!");
         return null;
     }
 
@@ -137,7 +156,7 @@ public class LogService {
 
         LogDictionaryFormatType dictFormatType;
         if (dictGroup == list.size()) {
-            Map<String, Long> keyMap = new HashMap<>();
+            Map<String, Long> keyMap = new LinkedHashMap<>();
             keyMap.put(key, 0L);
             dictFormatType = new LogDictionaryFormatType(keyMap, new ArrayList<>(List.of(0L)));
             list.add(dictFormatType);
@@ -165,7 +184,92 @@ public class LogService {
 
     private void handleLogNoMatchFormatType(long currentLine, String line) {
         Map<Long, String> map = logRepository.getLogNoMatchFormatTypeMap();
-        map.put(currentLine, line);
+        if ("".equals(line)) {
+            map.put(currentLine, NEWLINE_MARKER);
+        } else {
+            map.put(currentLine, line);
+        }
+    }
+
+    private void exportCompressedLog(LogFormat logFormat) throws IOException {
+        String path = "src/main/resources/" + COMPRESSED_LOG_FILENAME;
+
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter(new FileWriter(path));
+
+            writer.write(logFormat.getFormat());
+            writer.newLine();
+
+            int index = 0;
+            int repGroup = 0;
+            int numGroup = 0;
+            int dictGroup = 0;
+            int msgGroup = 0;
+            for (String formatType : logFormat.getFormatTypeList()) {
+                if (LogFormatType.REP.getFormatType().equals(formatType)) {
+                    List<LogRepetitiveFormatType> groupList = logRepository.getLogRepetitiveFormatTypeList().get(repGroup++);
+                    for (LogRepetitiveFormatType repFormatType : groupList) {
+                        writer.write(repFormatType.getKey());
+                        writer.newLine();
+                        writer.write(String.valueOf(repFormatType.getTimes()));
+                        writer.newLine();
+                    }
+                } else if (LogFormatType.NUM.getFormatType().equals(formatType)) {
+                    LogNumericFormatType group = logRepository.getLogNumericFormatTypeList().get(numGroup++);
+                    writer.write(group.getKey());
+                    writer.newLine();
+                    for (long delta : group.getDeltaList()) {
+                        writer.write(String.valueOf(delta));
+                        writer.newLine();
+                    }
+                } else if (LogFormatType.DICT.getFormatType().equals(formatType)) {
+                    LogDictionaryFormatType group = logRepository.getLogDictionaryFormatTypeList().get(dictGroup++);
+                    for (String key : group.getKeyMap().keySet()) {
+                        writer.write(key);
+                        writer.newLine();
+                    }
+                    writer.newLine();
+                    for (long order : group.getOrderList()) {
+                        writer.write(String.valueOf(order));
+                        writer.newLine();
+                    }
+
+                } else if (LogFormatType.MSG.getFormatType().equals(formatType)) {
+                    List<String> groupList = logRepository.getLogMessageFormatTypeList().get(msgGroup++);
+                    for (String msg : groupList) {
+                        writer.write(msg);
+                        writer.newLine();
+                    }
+                }
+
+                if (index < logFormat.getFormatTypeList().size() - 1) {
+                    writer.newLine();
+                }
+
+                index++;
+            }
+
+            Map<Long, String> noMatchMap = logRepository.getLogNoMatchFormatTypeMap();
+
+            if (!noMatchMap.isEmpty()) {
+                writer.newLine();
+            }
+
+            for (long line : noMatchMap.keySet()) {
+                writer.write(String.valueOf(line));
+                writer.newLine();
+                writer.write(noMatchMap.get(line));
+                writer.newLine();
+            }
+
+            writer.close();
+        } catch (Exception e) {
+            if (writer != null) {
+                writer.close();
+            }
+            throw new IOException();
+        }
     }
 
     public void clearFormatType() {

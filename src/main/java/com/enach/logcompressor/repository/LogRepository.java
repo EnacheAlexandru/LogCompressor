@@ -16,7 +16,6 @@ import org.springframework.stereotype.Repository;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URL;
 import java.util.*;
 
 @Getter
@@ -26,8 +25,8 @@ public class LogRepository implements ApplicationRunner {
 
     private static final Log logger = LogFactory.getLog(LogRepository.class);
 
-    @Value("${input.log.format}")
-    private String logFormatPath;
+	@Value("${logcompressor.log.format.filename}")
+    private String LOG_FORMAT_FILENAME;
 
     private final Map<String, LogFormat> logFormatMap = new HashMap<>();
 
@@ -48,18 +47,16 @@ public class LogRepository implements ApplicationRunner {
 	private final List<List<String>> logMessageFormatTypeList = new ArrayList<>();
 
 	// lines that do not match any format
-	private final Map<Long, String> logNoMatchFormatTypeMap = new HashMap<>();
+	private final Map<Long, String> logNoMatchFormatTypeMap = new LinkedHashMap<>();
 
 	// === /\ FORMAT TYPES /\ ===
 
     @Override
     public void run(ApplicationArguments args) {
+		BufferedReader reader = null;
         try {
-			URL logFormatUrl = LogRepository.class.getClassLoader().getResource(logFormatPath);
-			if (logFormatUrl == null) {
-				throw new IOException();
-			}
-			BufferedReader reader = new BufferedReader(new FileReader(logFormatUrl.getFile()));
+			String path = "src/main/resources/" + LOG_FORMAT_FILENAME;
+			reader = new BufferedReader(new FileReader(path));
 			String line;
 			while ((line = reader.readLine()) != null) {
 				String name = line;
@@ -70,7 +67,15 @@ public class LogRepository implements ApplicationRunner {
 				LogFormat logFormat = new LogFormat(regex, format);
                 logFormatMap.put(name, logFormat);
 			}
-		} catch (IOException e) {
+			reader.close();
+		} catch (IOException e1) {
+			try {
+				if (reader != null) {
+					reader.close();
+				}
+			} catch (IOException e2) {
+				// ignored
+			}
 			logger.error("Error reading log formats file");
             System.exit(0);
 		}

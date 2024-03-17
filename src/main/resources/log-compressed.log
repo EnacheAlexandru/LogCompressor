@@ -1,0 +1,153 @@
+rep num - dict  [dict:dict@num] - msg
+2015-07-29
+13
+2015-07-30
+2
+2015-07-29
+2
+2015-07-30
+2
+
+17:41:41,536
+0
+8
+11
+0
+2
+22
+30
+39
+1
+0
+0
+31
+3
+9
+27
+9
+5
+5
+194
+
+INFO 
+WARN 
+ERROR
+
+0
+0
+0
+0
+0
+0
+1
+0
+0
+2
+2
+0
+0
+0
+0
+0
+1
+1
+1
+
+main
+Thread-1
+QuorumPeer[myid=1]/0:0:0:0:0:0:0:0:2181
+WorkerReceiver[myid=1]
+WorkerSender[myid=1]
+
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+1
+2
+3
+4
+4
+2
+
+QuorumPeerConfig
+DatadirCleanupManager
+QuorumPeerMain
+NIOServerCnxnFactory
+QuorumPeer
+QuorumCnxManager$Listener
+FastLeaderElection
+QuorumCnxManager
+
+0
+0
+1
+1
+1
+2
+3
+4
+4
+4
+4
+4
+4
+5
+6
+6
+7
+7
+7
+
+101
+0
+233
+-256
+1
+22
+26
+-33
+819
+20
+11
+15
+-530
+15
+42
+254
+-198
+-174
+0
+0
+
+Reading configuration from: /etc/zookeeper/conf/zoo.cfg
+Defaulting to majority quorums
+autopurge.snapRetainCount set to 3
+autopurge.purgeInterval set to 0
+Purge task is not scheduled.
+Starting quorum peer
+binding to port 0.0.0.0/0.0.0.0:2181
+tickTime set to 2000
+minSessionTimeout set to -1
+maxSessionTimeout set to -1
+initLimit set to 10
+currentEpoch not found! Creating with a reasonable default of 0. This should only happen when you are upgrading your installation
+acceptedEpoch not found! Creating with a reasonable default of 0. This should only happen when you are upgrading your installation
+My election bind port: 0.0.0.0/0.0.0.0:3888
+New election. My id =  1, proposed zxid=0x0
+Notification: 1 (n.leader), 0x0 (n.zxid), 0x1 (n.round), LOOKING (n.state), 1 (n.sid), 0x0 (n.peerEPoch), LOOKING (my state)
+Cannot open channel to 2 at election address /10.10.34.12:3888
+Cannot open channel to 3 at election address /10.10.34.13:3888
+Cannot open channel to 2 at election address /10.10.34.12:3888
+
+14
+Exception caused by: absolutely nothing
