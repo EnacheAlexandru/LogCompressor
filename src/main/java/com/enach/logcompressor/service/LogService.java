@@ -158,7 +158,7 @@ public class LogService {
         if (dictGroup == list.size()) {
             Map<String, Long> keyMap = new LinkedHashMap<>();
             keyMap.put(key, 0L);
-            dictFormatType = new LogDictionaryFormatType(keyMap, new ArrayList<>(List.of(0L)));
+            dictFormatType = new LogDictionaryFormatType(keyMap, null, new ArrayList<>(List.of(0L)));
             list.add(dictFormatType);
         } else {
             dictFormatType = list.get(dictGroup);

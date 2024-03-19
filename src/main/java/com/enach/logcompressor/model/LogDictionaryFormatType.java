@@ -12,6 +12,8 @@ public class LogDictionaryFormatType {
 
     private Map<String, Long> keyMap;
 
+    private List<String> keyList;
+
     private List<Long> orderList;
 
 }

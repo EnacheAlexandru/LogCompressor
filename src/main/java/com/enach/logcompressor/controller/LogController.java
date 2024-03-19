@@ -1,5 +1,6 @@
 package com.enach.logcompressor.controller;
 
+import com.enach.logcompressor.service.LogDecompressService;
 import com.enach.logcompressor.service.LogService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.logging.Log;
@@ -31,6 +32,8 @@ public class LogController {
 
     private final LogService logService;
 
+    private final LogDecompressService logDecompressService;
+
     @PostMapping(value="/compress", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> compress(@RequestParam(value="file") MultipartFile logFile) {
         try {
@@ -60,6 +63,23 @@ public class LogController {
         } catch (Exception e) {
             logger.error("Error while trying to download compressed file!");
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping(value="/decompress", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> decompress(@RequestParam(value="file") MultipartFile logFile) {
+        try {
+            if (logFile == null || logFile.isEmpty()) {
+                throw new Exception();
+            }
+            logger.info("Received '" + logFile.getOriginalFilename() + "' for decompression.");
+            logDecompressService.decompress(logFile.getInputStream());
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            logger.error("Error while trying to decompress file.");
+            return ResponseEntity.badRequest().build();
+        } finally {
+            logService.clearFormatType();
         }
     }
 }
