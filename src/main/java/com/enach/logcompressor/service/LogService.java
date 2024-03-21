@@ -268,6 +268,7 @@ public class LogService {
             if (writer != null) {
                 writer.close();
             }
+            logger.error("Error while trying to export compressed file!");
             throw new IOException();
         }
     }

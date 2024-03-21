@@ -44,7 +44,7 @@ public class LogController {
             logService.compress(logFile.getInputStream());
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            logger.error("Error while trying to compress file.");
+            logger.error("Error while trying to compress file!");
             return ResponseEntity.badRequest().build();
         } finally {
             logService.clearFormatType();
@@ -76,7 +76,7 @@ public class LogController {
             logDecompressService.decompress(logFile.getInputStream());
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            logger.error("Error while trying to decompress file.");
+            logger.error("Error while trying to decompress file!");
             return ResponseEntity.badRequest().build();
         } finally {
             logService.clearFormatType();

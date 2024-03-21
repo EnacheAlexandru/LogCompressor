@@ -8,10 +8,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,12 +30,13 @@ public class LogDecompressService {
     public void decompress(InputStream inputStream) throws IOException {
         logger.info("Starting processing decompression...");
 
+        LogFormat logFormat;
         BufferedReader reader = null;
         try {
             reader = new BufferedReader(new InputStreamReader(inputStream));
             String line = reader.readLine();
 
-            LogFormat logFormat = new LogFormat(line);
+            logFormat = new LogFormat(line);
 
             for (String formatType : logFormat.getFormatTypeList()) {
                 if (LogFormatType.REP.getFormatType().equals(formatType)) {
@@ -92,7 +90,75 @@ public class LogDecompressService {
         logger.info("Decompression processed successfully!");
 
         logger.info("Starting exporting decompressed log...");
-//        exportDecompressedLog(logFormat);
+        exportDecompressedLog(logFormat);
         logger.info("Decompressed log exported successfully!");
+    }
+
+    private void exportDecompressedLog(LogFormat logFormat) throws IOException {
+        String path = "src/main/resources/" + DECOMPRESSED_LOG_FILENAME;
+
+        int totalLines = logRepository.getLogMessageFormatTypeList().get(0).size() + logRepository.getLogNoMatchFormatTypeMap().size();
+        int index = 0;
+        int currentLine = 0;
+
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter(new FileWriter(path));
+
+            while (currentLine < totalLines) {
+                String noMatchObj = logRepository.getLogNoMatchFormatTypeMap().get((long) currentLine);
+                if (noMatchObj != null) {
+                    if (!NEWLINE_MARKER.equals(noMatchObj)) {
+                        writer.write(noMatchObj);
+                    }
+                    writer.newLine();
+                    currentLine++;
+                    continue;
+                }
+                StringBuilder line = new StringBuilder();
+                int repGroup = 0;
+                int numGroup = 0;
+                int dictGroup = 0;
+                int msgGroup = 0;
+                for (String formatType : logFormat.getFormatTypeList()) {
+                    if (LogFormatType.REP.getFormatType().equals(formatType)) {
+                        List<LogRepetitiveFormatType> repObjList = logRepository.getLogRepetitiveFormatTypeList().get(repGroup++);
+                        LogRepetitiveFormatType repObj = repObjList.get(0);
+                        line.append(repObj.getKey());
+                        repObj.setTimes(repObj.getTimes() - 1);
+                        if (repObjList.get(0).getTimes() == 0L) {
+                            repObjList.remove(0);
+                        }
+                    } else if (LogFormatType.NUM.getFormatType().equals(formatType)) {
+                        LogNumericFormatType numObj = logRepository.getLogNumericFormatTypeList().get(numGroup++);
+                        numObj.setCurrent(numObj.getCurrent() + numObj.getDeltaList().get(index));
+                        line.append(numObj.getCurrent());
+                    } else if (LogFormatType.DICT.getFormatType().equals(formatType)) {
+                        LogDictionaryFormatType dictObj = logRepository.getLogDictionaryFormatTypeList().get(dictGroup++);
+                        long currentOrder = dictObj.getOrderList().get(index);
+                        line.append(dictObj.getKeyList().get((int) currentOrder));
+                    } else if (LogFormatType.MSG.getFormatType().equals(formatType)) {
+                        String msgObj = logRepository.getLogMessageFormatTypeList().get(msgGroup++).get(index);
+                        line.append(msgObj);
+                    }
+                    line.append(" ");
+                }
+                line.deleteCharAt(line.length() - 1);
+
+                writer.write(String.valueOf(line));
+                writer.newLine();
+
+                currentLine++;
+                index++;
+            }
+
+            writer.close();
+        } catch (Exception e) {
+            if (writer != null) {
+                writer.close();
+            }
+            logger.error("Error while trying to export decompressed file!");
+            throw new IOException();
+        }
     }
 }
