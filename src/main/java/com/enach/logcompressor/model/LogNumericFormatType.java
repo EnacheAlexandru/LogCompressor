@@ -1,6 +1,5 @@
 package com.enach.logcompressor.model;
 
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,11 +17,12 @@ public class LogNumericFormatType {
 
     private Long current;
 
-    @Setter(AccessLevel.NONE)
     private List<Long> deltaList;
 
+    private String numSeparatorsRegex;
+
     public String formatCurrentLikeKey() {
-        String[] sepList = key.split("[:,.]");
+        String[] sepList = key.split(numSeparatorsRegex);
         String sepStr = key.replaceAll("\\d", "");
         String currStr = String.valueOf(current);
 

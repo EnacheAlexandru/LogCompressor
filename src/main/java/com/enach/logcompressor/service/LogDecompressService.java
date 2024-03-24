@@ -22,6 +22,12 @@ public class LogDecompressService {
     @Value("${logcompressor.newline.marker}")
     private String NEWLINE_MARKER;
 
+    @Value("${logcompressor.num.separators}")
+    private String NUM_SEPARATORS;
+
+    @Value("${logcompressor.line.separators}")
+    private String LINE_SEPARATORS;
+
     private final LogRepository logRepository;
 
     private static final Log logger = LogFactory.getLog(LogDecompressService.class);
@@ -36,7 +42,7 @@ public class LogDecompressService {
             reader = new BufferedReader(new InputStreamReader(inputStream));
             String line = reader.readLine();
 
-            logFormat = new LogFormat(line);
+            logFormat = new LogFormat(null, line, LINE_SEPARATORS);
 
             for (String formatType : logFormat.getFormatTypeList()) {
                 if (LogFormatType.REP.getName().equals(formatType)) {
@@ -49,9 +55,9 @@ public class LogDecompressService {
                     logRepository.getLogRepetitiveFormatTypeList().add(listGroup);
                 } else if (LogFormatType.NUM.getName().equals(formatType)) {
                     String key = reader.readLine();
-                    String strNumKey = key.replaceAll("[:,.]", "");
+                    String strNumKey = key.replaceAll(NUM_SEPARATORS, "");
                     Long numKey = Long.parseLong(strNumKey);
-                    LogNumericFormatType numFormatType = new LogNumericFormatType(key, numKey, numKey, new ArrayList<>());
+                    LogNumericFormatType numFormatType = new LogNumericFormatType(key, numKey, numKey, new ArrayList<>(), NUM_SEPARATORS);
                     while (!(line = reader.readLine()).isEmpty()) {
                         numFormatType.getDeltaList().add(Long.valueOf(line));
                     }

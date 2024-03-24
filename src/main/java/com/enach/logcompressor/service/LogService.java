@@ -23,6 +23,9 @@ public class LogService {
     @Value("${logcompressor.newline.marker}")
     private String NEWLINE_MARKER;
 
+    @Value("${logcompressor.num.separators}")
+    private String NUM_SEPARATORS;
+
     private final LogRepository logRepository;
 
     private static final Log logger = LogFactory.getLog(LogService.class);
@@ -137,12 +140,12 @@ public class LogService {
     private void handleLogNumericFormatType(int numGroup, String key) {
         List<LogNumericFormatType> list = logRepository.getLogNumericFormatTypeList();
 
-        String strNumber = key.replaceAll("[:,.]", "");
+        String strNumber = key.replaceAll(NUM_SEPARATORS, "");
         Long number = Long.parseLong(strNumber);
 
         LogNumericFormatType numFormatType;
         if (numGroup == list.size()) {
-            numFormatType = new LogNumericFormatType(key, number, number, new ArrayList<>(List.of(0L)));
+            numFormatType = new LogNumericFormatType(key, number, number, new ArrayList<>(List.of(0L)), NUM_SEPARATORS);
             list.add(numFormatType);
         } else {
             numFormatType = list.get(numGroup);

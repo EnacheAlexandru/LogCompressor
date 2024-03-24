@@ -28,6 +28,9 @@ public class LogRepository implements ApplicationRunner {
 	@Value("${logcompressor.log.format.filename}")
     private String LOG_FORMAT_FILENAME;
 
+	@Value("${logcompressor.line.separators}")
+	private String LINE_SEPARATORS;
+
     private final Map<String, LogFormat> logFormatMap = new HashMap<>();
 
 	// === \/ FORMAT TYPES \/ ===
@@ -64,7 +67,7 @@ public class LogRepository implements ApplicationRunner {
 				String regex = line;
 				line = reader.readLine();
 				String format = line;
-				LogFormat logFormat = new LogFormat(regex, format);
+				LogFormat logFormat = new LogFormat(regex, format, LINE_SEPARATORS);
                 logFormatMap.put(name, logFormat);
 			}
 			reader.close();
