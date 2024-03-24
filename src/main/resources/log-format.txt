@@ -1,6 +1,6 @@
 zookeeper
 ^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2},\d{3}) - (\w+ *) \[(.+):(.+)@(\d{1,4})\] - (.+)$
-rep num - dict  [dict:dict@num] - msg
+rep num - dict [dict:dict@num] - msg
 windows
 ^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}), (\w+ *) (\w+ *) (.+?): (.+)$
 rep num, dict dict dict: msg

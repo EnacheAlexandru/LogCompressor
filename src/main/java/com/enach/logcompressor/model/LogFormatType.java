@@ -9,9 +9,9 @@ public enum LogFormatType {
     DICT("dict"),
     MSG("msg");
 
-    private final String formatType;
+    private final String name;
 
-    LogFormatType(String formatType) {
-        this.formatType = formatType;
+    LogFormatType(String name) {
+        this.name = name;
     }
 }

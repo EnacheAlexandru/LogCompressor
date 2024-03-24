@@ -39,7 +39,7 @@ public class LogDecompressService {
             logFormat = new LogFormat(line);
 
             for (String formatType : logFormat.getFormatTypeList()) {
-                if (LogFormatType.REP.getFormatType().equals(formatType)) {
+                if (LogFormatType.REP.getName().equals(formatType)) {
                     List<LogRepetitiveFormatType> listGroup = new ArrayList<>();
                     while (!(line = reader.readLine()).isEmpty()) {
                         Long times = Long.valueOf(reader.readLine());
@@ -47,7 +47,7 @@ public class LogDecompressService {
                         listGroup.add(repFormatType);
                     }
                     logRepository.getLogRepetitiveFormatTypeList().add(listGroup);
-                } else if (LogFormatType.NUM.getFormatType().equals(formatType)) {
+                } else if (LogFormatType.NUM.getName().equals(formatType)) {
                     String key = reader.readLine();
                     String strNumKey = key.replaceAll("[:,.]", "");
                     Long numKey = Long.parseLong(strNumKey);
@@ -56,7 +56,7 @@ public class LogDecompressService {
                         numFormatType.getDeltaList().add(Long.valueOf(line));
                     }
                     logRepository.getLogNumericFormatTypeList().add(numFormatType);
-                } else if (LogFormatType.DICT.getFormatType().equals(formatType)) {
+                } else if (LogFormatType.DICT.getName().equals(formatType)) {
                     LogDictionaryFormatType dictFormatType = new LogDictionaryFormatType(null, new ArrayList<>(), new ArrayList<>());
                     while (!(line = reader.readLine()).isEmpty()) {
                         dictFormatType.getKeyList().add(line);
@@ -65,7 +65,7 @@ public class LogDecompressService {
                         dictFormatType.getOrderList().add(Long.valueOf(line));
                     }
                     logRepository.getLogDictionaryFormatTypeList().add(dictFormatType);
-                } else if (LogFormatType.MSG.getFormatType().equals(formatType)) {
+                } else if (LogFormatType.MSG.getName().equals(formatType)) {
                     List<String> listGroup = new ArrayList<>();
                     while (!(line = reader.readLine()).isEmpty()) {
                         listGroup.add(line);
@@ -115,37 +115,39 @@ public class LogDecompressService {
                     currentLine++;
                     continue;
                 }
-                StringBuilder line = new StringBuilder();
+                String line = String.valueOf(logFormat.getFormat()); // need a copy
+                line = line.replaceAll("rep|num|dict|msg", "%s");
+                List<String> replaceList = new ArrayList<>();
                 int repGroup = 0;
                 int numGroup = 0;
                 int dictGroup = 0;
                 int msgGroup = 0;
                 for (String formatType : logFormat.getFormatTypeList()) {
-                    if (LogFormatType.REP.getFormatType().equals(formatType)) {
+                    if (LogFormatType.REP.getName().equals(formatType)) {
                         List<LogRepetitiveFormatType> repObjList = logRepository.getLogRepetitiveFormatTypeList().get(repGroup++);
                         LogRepetitiveFormatType repObj = repObjList.get(0);
-                        line.append(repObj.getKey());
+                        replaceList.add(repObj.getKey());
                         repObj.setTimes(repObj.getTimes() - 1);
                         if (repObjList.get(0).getTimes() == 0L) {
                             repObjList.remove(0);
                         }
-                    } else if (LogFormatType.NUM.getFormatType().equals(formatType)) {
+                    } else if (LogFormatType.NUM.getName().equals(formatType)) {
                         LogNumericFormatType numObj = logRepository.getLogNumericFormatTypeList().get(numGroup++);
                         numObj.setCurrent(numObj.getCurrent() + numObj.getDeltaList().get(index));
-                        line.append(numObj.getCurrent());
-                    } else if (LogFormatType.DICT.getFormatType().equals(formatType)) {
+                        replaceList.add(numObj.formatCurrentLikeKey());
+                    } else if (LogFormatType.DICT.getName().equals(formatType)) {
                         LogDictionaryFormatType dictObj = logRepository.getLogDictionaryFormatTypeList().get(dictGroup++);
                         long currentOrder = dictObj.getOrderList().get(index);
-                        line.append(dictObj.getKeyList().get((int) currentOrder));
-                    } else if (LogFormatType.MSG.getFormatType().equals(formatType)) {
+                        replaceList.add(dictObj.getKeyList().get((int) currentOrder));
+                    } else if (LogFormatType.MSG.getName().equals(formatType)) {
                         String msgObj = logRepository.getLogMessageFormatTypeList().get(msgGroup++).get(index);
-                        line.append(msgObj);
+                        replaceList.add(msgObj);
                     }
-                    line.append(" ");
                 }
-                line.deleteCharAt(line.length() - 1);
 
-                writer.write(String.valueOf(line));
+                line = String.format(line, replaceList.toArray());
+
+                writer.write(line);
                 writer.newLine();
 
                 currentLine++;
