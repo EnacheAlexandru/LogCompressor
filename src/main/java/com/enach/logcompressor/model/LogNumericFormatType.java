@@ -23,8 +23,15 @@ public class LogNumericFormatType {
 
     public String formatCurrentLikeKey() {
         String[] sepList = key.split(numSeparatorsRegex);
+        int keySize = key.replaceAll(numSeparatorsRegex, "").length();
         String sepStr = key.replaceAll("\\d", "");
-        String currStr = String.valueOf(current);
+        StringBuilder currStr = new StringBuilder(String.valueOf(current));
+        int currStrSize = currStr.length();
+        if (!sepStr.isEmpty() && currStrSize < keySize) {
+            for (int i = 0; i < keySize - currStrSize; i++) {
+                currStr.insert(0, "0");
+            }
+        }
 
         StringBuilder format = new StringBuilder();
         int start = 0;

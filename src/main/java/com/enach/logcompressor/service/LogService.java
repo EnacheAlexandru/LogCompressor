@@ -26,6 +26,9 @@ public class LogService {
     @Value("${logcompressor.num.separators}")
     private String NUM_SEPARATORS;
 
+    @Value("${logcompressor.error.stacktrace.size}")
+    private int STACKTRACE_SIZE;
+
     private final LogRepository logRepository;
 
     private static final Log logger = LogFactory.getLog(LogService.class);
@@ -89,6 +92,10 @@ public class LogService {
         } catch (Exception e) {
             if (reader != null) {
                 reader.close();
+            }
+            logger.error(e);
+            for (int i = 0; i < STACKTRACE_SIZE; i++) {
+                logger.error(e.getStackTrace()[i]);
             }
             throw new IOException();
         }
@@ -272,6 +279,10 @@ public class LogService {
                 writer.close();
             }
             logger.error("Error while trying to export compressed file!");
+            logger.error(e);
+            for (int i = 0; i < STACKTRACE_SIZE; i++) {
+                logger.error(e.getStackTrace()[i]);
+            }
             throw new IOException();
         }
     }

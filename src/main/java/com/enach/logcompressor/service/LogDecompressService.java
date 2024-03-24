@@ -28,6 +28,9 @@ public class LogDecompressService {
     @Value("${logcompressor.line.separators}")
     private String LINE_SEPARATORS;
 
+    @Value("${logcompressor.error.stacktrace.size}")
+    private int STACKTRACE_SIZE;
+
     private final LogRepository logRepository;
 
     private static final Log logger = LogFactory.getLog(LogDecompressService.class);
@@ -47,7 +50,7 @@ public class LogDecompressService {
             for (String formatType : logFormat.getFormatTypeList()) {
                 if (LogFormatType.REP.getName().equals(formatType)) {
                     List<LogRepetitiveFormatType> listGroup = new ArrayList<>();
-                    while (!(line = reader.readLine()).isEmpty()) {
+                    while ((line = reader.readLine()) != null && !line.isEmpty()) {
                         Long times = Long.valueOf(reader.readLine());
                         LogRepetitiveFormatType repFormatType = new LogRepetitiveFormatType(line, times);
                         listGroup.add(repFormatType);
@@ -58,22 +61,22 @@ public class LogDecompressService {
                     String strNumKey = key.replaceAll(NUM_SEPARATORS, "");
                     Long numKey = Long.parseLong(strNumKey);
                     LogNumericFormatType numFormatType = new LogNumericFormatType(key, numKey, numKey, new ArrayList<>(), NUM_SEPARATORS);
-                    while (!(line = reader.readLine()).isEmpty()) {
+                    while ((line = reader.readLine()) != null && !line.isEmpty()) {
                         numFormatType.getDeltaList().add(Long.valueOf(line));
                     }
                     logRepository.getLogNumericFormatTypeList().add(numFormatType);
                 } else if (LogFormatType.DICT.getName().equals(formatType)) {
                     LogDictionaryFormatType dictFormatType = new LogDictionaryFormatType(null, new ArrayList<>(), new ArrayList<>());
-                    while (!(line = reader.readLine()).isEmpty()) {
+                    while ((line = reader.readLine()) != null && !line.isEmpty()) {
                         dictFormatType.getKeyList().add(line);
                     }
-                    while (!(line = reader.readLine()).isEmpty()) {
+                    while ((line = reader.readLine()) != null && !line.isEmpty()) {
                         dictFormatType.getOrderList().add(Long.valueOf(line));
                     }
                     logRepository.getLogDictionaryFormatTypeList().add(dictFormatType);
                 } else if (LogFormatType.MSG.getName().equals(formatType)) {
                     List<String> listGroup = new ArrayList<>();
-                    while (!(line = reader.readLine()).isEmpty()) {
+                    while ((line = reader.readLine()) != null && !line.isEmpty()) {
                         listGroup.add(line);
                     }
                     logRepository.getLogMessageFormatTypeList().add(listGroup);
@@ -89,6 +92,10 @@ public class LogDecompressService {
         } catch (Exception e) {
             if (reader != null) {
                 reader.close();
+            }
+            logger.error(e);
+            for (int i = 0; i < STACKTRACE_SIZE; i++) {
+                logger.error(e.getStackTrace()[i]);
             }
             throw new IOException();
         }
@@ -166,6 +173,10 @@ public class LogDecompressService {
                 writer.close();
             }
             logger.error("Error while trying to export decompressed file!");
+            logger.error(e);
+            for (int i = 0; i < STACKTRACE_SIZE; i++) {
+                logger.error(e.getStackTrace()[i]);
+            }
             throw new IOException();
         }
     }
