@@ -30,6 +30,9 @@ public class LogController {
     @Value("${logcompressor.compressed.log.filename}")
     private String COMPRESSED_LOG_FILENAME;
 
+    @Value("${logcompressor.decompressed.log.filename}")
+    private String DECOMPRESSED_LOG_FILENAME;
+
     private final LogService logService;
 
     private final LogDecompressService logDecompressService;
@@ -80,6 +83,21 @@ public class LogController {
             return ResponseEntity.badRequest().build();
         } finally {
             logService.clearFormatType();
+        }
+    }
+
+    @GetMapping(value="/decompress/download", produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<Resource> decompressDownload() {
+        try {
+            Path logFormatPath = Paths.get("src/main/resources/" + DECOMPRESSED_LOG_FILENAME);
+            ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(logFormatPath));
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + DECOMPRESSED_LOG_FILENAME + "\"")
+                    .body(resource);
+        } catch (Exception e) {
+            logger.error("Error while trying to download decompressed file!");
+            return ResponseEntity.badRequest().build();
         }
     }
 }
