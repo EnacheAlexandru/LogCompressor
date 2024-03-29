@@ -19,6 +19,8 @@ public class LogNumericFormatType {
 
     private List<Long> deltaList;
 
+    private Boolean isFixedLength;
+
     private String numSeparatorsRegex;
 
     public String formatCurrentLikeKey() {
@@ -27,7 +29,7 @@ public class LogNumericFormatType {
         String sepStr = key.replaceAll("\\d", "");
         StringBuilder currStr = new StringBuilder(String.valueOf(current));
         int currStrSize = currStr.length();
-        if (!sepStr.isEmpty() && currStrSize < keySize) {
+        if (isFixedLength || (!sepStr.isEmpty() && currStrSize < keySize)) {
             for (int i = 0; i < keySize - currStrSize; i++) {
                 currStr.insert(0, "0");
             }

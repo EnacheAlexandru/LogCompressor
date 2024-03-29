@@ -6,6 +6,7 @@ import lombok.Getter;
 public enum LogFormatType {
     REP("rep"),
     NUM("num"),
+    NUMF("numf"), // fixed length
     DICT("dict"),
     MSG("msg");
 

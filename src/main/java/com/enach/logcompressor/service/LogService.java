@@ -70,7 +70,7 @@ public class LogService {
                     for (String formatType : logFormat.getFormatTypeList()) {
                         if (LogFormatType.REP.getName().equals(formatType)) {
                             handleLogRepetitiveFormatType(repGroup++, matcher.group(group));
-                        } else if (LogFormatType.NUM.getName().equals(formatType)) {
+                        } else if (LogFormatType.NUM.getName().equals(formatType) || LogFormatType.NUMF.getName().equals(formatType)) {
                             handleLogNumericFormatType(numGroup++, matcher.group(group));
                         } else if (LogFormatType.DICT.getName().equals(formatType)) {
                             handleLogDictionaryFormatType(dictGroup++, matcher.group(group));
@@ -152,7 +152,7 @@ public class LogService {
 
         LogNumericFormatType numFormatType;
         if (numGroup == list.size()) {
-            numFormatType = new LogNumericFormatType(key, number, number, new ArrayList<>(List.of(0L)), NUM_SEPARATORS);
+            numFormatType = new LogNumericFormatType(key, number, number, new ArrayList<>(List.of(0L)), null, NUM_SEPARATORS);
             list.add(numFormatType);
         } else {
             numFormatType = list.get(numGroup);
@@ -225,7 +225,7 @@ public class LogService {
                         writer.write(String.valueOf(repFormatType.getTimes()));
                         writer.newLine();
                     }
-                } else if (LogFormatType.NUM.getName().equals(formatType)) {
+                } else if (LogFormatType.NUM.getName().equals(formatType) || LogFormatType.NUMF.getName().equals(formatType)) {
                     LogNumericFormatType group = logRepository.getLogNumericFormatTypeList().get(numGroup++);
                     writer.write(group.getKey());
                     writer.newLine();

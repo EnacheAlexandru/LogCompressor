@@ -56,11 +56,12 @@ public class LogDecompressService {
                         listGroup.add(repFormatType);
                     }
                     logRepository.getLogRepetitiveFormatTypeList().add(listGroup);
-                } else if (LogFormatType.NUM.getName().equals(formatType)) {
+                } else if (LogFormatType.NUM.getName().equals(formatType) || LogFormatType.NUMF.getName().equals(formatType)) {
                     String key = reader.readLine();
                     String strNumKey = key.replaceAll(NUM_SEPARATORS, "");
                     Long numKey = Long.parseLong(strNumKey);
-                    LogNumericFormatType numFormatType = new LogNumericFormatType(key, numKey, numKey, new ArrayList<>(), NUM_SEPARATORS);
+                    boolean isFixedLength = LogFormatType.NUMF.getName().equals(formatType);
+                    LogNumericFormatType numFormatType = new LogNumericFormatType(key, numKey, numKey, new ArrayList<>(), isFixedLength, NUM_SEPARATORS);
                     while ((line = reader.readLine()) != null && !line.isEmpty()) {
                         numFormatType.getDeltaList().add(Long.valueOf(line));
                     }
@@ -129,7 +130,7 @@ public class LogDecompressService {
                     continue;
                 }
                 String line = String.valueOf(logFormat.getFormat()); // need a copy
-                line = line.replaceAll("rep|num|dict|msg", "%s");
+                line = line.replaceAll("\\b(rep|num|numf|dict|msg)\\b", "%s");
                 List<String> replaceList = new ArrayList<>();
                 int repGroup = 0;
                 int numGroup = 0;
@@ -144,7 +145,7 @@ public class LogDecompressService {
                         if (repObjList.get(0).getTimes() == 0L) {
                             repObjList.remove(0);
                         }
-                    } else if (LogFormatType.NUM.getName().equals(formatType)) {
+                    } else if (LogFormatType.NUM.getName().equals(formatType) || LogFormatType.NUMF.getName().equals(formatType)) {
                         LogNumericFormatType numObj = logRepository.getLogNumericFormatTypeList().get(numGroup++);
                         numObj.setCurrent(numObj.getCurrent() + numObj.getDeltaList().get(index));
                         replaceList.add(numObj.formatCurrentLikeKey());
