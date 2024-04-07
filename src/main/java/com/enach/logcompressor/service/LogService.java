@@ -29,6 +29,9 @@ public class LogService {
     @Value("${logcompressor.error.stacktrace.size}")
     private int STACKTRACE_SIZE;
 
+    @Value("${logcompressor.debug.print.line.multiple}")
+    private int DEBUG_LINE_MULTIPLE;
+
     private final LogRepository logRepository;
 
     private static final Log logger = LogFactory.getLog(LogService.class);
@@ -55,6 +58,9 @@ public class LogService {
                 if (isFirstLineProcessed) {
                     line = reader.readLine();
                     currentLine++;
+                    if (currentLine % DEBUG_LINE_MULTIPLE == 0) {
+                        logger.debug("Current line read: " + currentLine);
+                    }
                 }
                 if (line == null) {
                     break;

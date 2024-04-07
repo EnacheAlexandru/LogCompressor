@@ -1,5 +1,6 @@
 package com.enach.logcompressor.controller;
 
+import com.enach.logcompressor.repository.LogRepository;
 import com.enach.logcompressor.service.LogDecompressService;
 import com.enach.logcompressor.service.LogService;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,13 +35,20 @@ public class LogController {
     @Value("${logcompressor.decompressed.log.filename}")
     private String DECOMPRESSED_LOG_FILENAME;
 
+    private final LogRepository logRepository;
+
     private final LogService logService;
 
     private final LogDecompressService logDecompressService;
 
     @PostMapping(value="/compress", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> compress(@RequestParam(value="file") MultipartFile logFile) {
+        if (logRepository.isProcessing()) {
+            logger.error("Already compressing a file!");
+            return new ResponseEntity<>(HttpStatus.TOO_MANY_REQUESTS);
+        }
         try {
+            logRepository.setProcessing(true);
             if (logFile == null || logFile.isEmpty()) {
                 throw new Exception();
             }
@@ -51,12 +60,18 @@ public class LogController {
             return ResponseEntity.badRequest().build();
         } finally {
             logService.clearFormatType();
+            logRepository.setProcessing(false);
         }
     }
 
     @GetMapping(value="/compress/download", produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<Resource> compressDownload() {
+        if (logRepository.isProcessing()) {
+            logger.error("Already downloading a compressed file!");
+            return new ResponseEntity<>(HttpStatus.TOO_MANY_REQUESTS);
+        }
         try {
+            logRepository.setProcessing(true);
             Path logFormatPath = Paths.get("src/main/resources/" + COMPRESSED_LOG_FILENAME);
             ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(logFormatPath));
             return ResponseEntity.ok()
@@ -66,12 +81,19 @@ public class LogController {
         } catch (Exception e) {
             logger.error("Error while trying to download compressed file!");
             return ResponseEntity.badRequest().build();
+        } finally {
+            logRepository.setProcessing(false);
         }
     }
 
     @PostMapping(value="/decompress", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> decompress(@RequestParam(value="file") MultipartFile logFile) {
+        if (logRepository.isProcessing()) {
+            logger.error("Already decompressing a file!");
+            return new ResponseEntity<>(HttpStatus.TOO_MANY_REQUESTS);
+        }
         try {
+            logRepository.setProcessing(true);
             if (logFile == null || logFile.isEmpty()) {
                 throw new Exception();
             }
@@ -83,12 +105,18 @@ public class LogController {
             return ResponseEntity.badRequest().build();
         } finally {
             logService.clearFormatType();
+            logRepository.setProcessing(false);
         }
     }
 
     @GetMapping(value="/decompress/download", produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<Resource> decompressDownload() {
+        if (logRepository.isProcessing()) {
+            logger.error("Already downloading a decompressed file!");
+            return new ResponseEntity<>(HttpStatus.TOO_MANY_REQUESTS);
+        }
         try {
+            logRepository.setProcessing(true);
             Path logFormatPath = Paths.get("src/main/resources/" + DECOMPRESSED_LOG_FILENAME);
             ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(logFormatPath));
             return ResponseEntity.ok()
@@ -98,6 +126,8 @@ public class LogController {
         } catch (Exception e) {
             logger.error("Error while trying to download decompressed file!");
             return ResponseEntity.badRequest().build();
+        } finally {
+            logRepository.setProcessing(false);
         }
     }
 }

@@ -6,6 +6,7 @@ import com.enach.logcompressor.model.LogNumericFormatType;
 import com.enach.logcompressor.model.LogRepetitiveFormatType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.util.*;
 
 @Getter
+@Setter
 @Repository
 @RequiredArgsConstructor
 public class LogRepository implements ApplicationRunner {
@@ -30,6 +32,8 @@ public class LogRepository implements ApplicationRunner {
 
 	@Value("${logcompressor.line.separators}")
 	private String LINE_SEPARATORS;
+
+	private boolean isProcessing = false;
 
     private final Map<String, LogFormat> logFormatMap = new HashMap<>();
 
