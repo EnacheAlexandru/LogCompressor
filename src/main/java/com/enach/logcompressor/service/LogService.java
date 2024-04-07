@@ -26,9 +26,6 @@ public class LogService {
     @Value("${logcompressor.num.separators}")
     private String NUM_SEPARATORS;
 
-    @Value("${logcompressor.error.stacktrace.size}")
-    private int STACKTRACE_SIZE;
-
     @Value("${logcompressor.debug.print.line.multiple}")
     private int DEBUG_LINE_MULTIPLE;
 
@@ -100,10 +97,7 @@ public class LogService {
             if (reader != null) {
                 reader.close();
             }
-            logger.error(e);
-            for (int i = 0; i < STACKTRACE_SIZE; i++) {
-                logger.error(e.getStackTrace()[i]);
-            }
+            logger.error(logRepository.printStackTrace(e));
             throw new IOException();
         }
 
@@ -213,7 +207,7 @@ public class LogService {
         try {
             writer = new BufferedWriter(new FileWriter(path));
 
-            writer.write(logFormat.getFormat());
+            writer.write(logFormat.getName());
             writer.newLine();
 
             int index = 0;
@@ -270,11 +264,7 @@ public class LogService {
             if (writer != null) {
                 writer.close();
             }
-            logger.error("Error while trying to export compressed file!");
-            logger.error(e);
-            for (int i = 0; i < STACKTRACE_SIZE; i++) {
-                logger.error(e.getStackTrace()[i]);
-            }
+            logger.error(logRepository.printStackTrace(e));
             throw new IOException();
         }
     }

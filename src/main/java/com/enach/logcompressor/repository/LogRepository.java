@@ -13,7 +13,6 @@ import org.springframework.stereotype.Repository;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.*;
 
 @Getter
@@ -29,6 +28,9 @@ public class LogRepository implements ApplicationRunner {
 
 	@Value("${logcompressor.line.separators}")
 	private String LINE_SEPARATORS;
+
+	@Value("${logcompressor.error.stacktrace.size}")
+	private int STACKTRACE_SIZE;
 
 	private boolean isProcessing = false;
 
@@ -65,7 +67,7 @@ public class LogRepository implements ApplicationRunner {
 				String regex = line;
 				line = reader.readLine();
 				String format = line;
-				LogFormat logFormat = new LogFormat(regex, format, LINE_SEPARATORS);
+				LogFormat logFormat = new LogFormat(name, regex, format, LINE_SEPARATORS);
 				if (!LogFormatType.MSG.getName().equals(logFormat.getFormatTypeList().get(logFormat.getFormatTypeList().size() - 1))) {
 					logger.error("All line formats have to finish with 'msg'!");
 					throw new Exception();
@@ -92,4 +94,18 @@ public class LogRepository implements ApplicationRunner {
 		logDictionaryFormatTypeList.clear();
 		logMessageFormatTypeList.clear();
 	}
+
+	public String printStackTrace(Exception e) {
+		StringBuilder stacktrace = new StringBuilder(String.valueOf(e));
+		stacktrace.append(System.lineSeparator());
+		for (int i = 0; i < STACKTRACE_SIZE; i++) {
+			stacktrace.append("...");
+			stacktrace.append(e.getStackTrace()[i]);
+			if (i < STACKTRACE_SIZE - 1) {
+				stacktrace.append(System.lineSeparator());
+			}
+		}
+		return String.valueOf(stacktrace);
+	}
+
 }
