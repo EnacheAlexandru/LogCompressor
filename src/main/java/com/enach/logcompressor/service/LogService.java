@@ -49,6 +49,7 @@ public class LogService {
             // first line has to match one of the formats in order to select the appropriate format
             logFormat = matchLogFormat(line);
             if (logFormat == null) {
+                logger.error("The first line has to match the format!");
                 throw new IOException();
             }
 
@@ -86,7 +87,7 @@ public class LogService {
                         group++;
                     }
                 } else {
-                    handleLogNoMatchFormatType(currentLine, line);
+                    handleLogNoMatchFormatType(line);
                 }
 
                 if (!isFirstLineProcessed) {
@@ -198,13 +199,11 @@ public class LogService {
         }
     }
 
-    private void handleLogNoMatchFormatType(long currentLine, String line) {
-        Map<Long, String> map = logRepository.getLogNoMatchFormatTypeMap();
-        if ("".equals(line)) {
-            map.put(currentLine, NEWLINE_MARKER);
-        } else {
-            map.put(currentLine, line);
-        }
+    private void handleLogNoMatchFormatType(String line) {
+        List<String> msgLastGroupList = logRepository.getLogMessageFormatTypeList().get(logRepository.getLogMessageFormatTypeList().size() - 1);
+        String lastMsg = msgLastGroupList.get(msgLastGroupList.size() - 1);
+        lastMsg += NEWLINE_MARKER + line;
+        msgLastGroupList.set(msgLastGroupList.size() - 1, lastMsg);
     }
 
     private void exportCompressedLog(LogFormat logFormat) throws IOException {
@@ -264,19 +263,6 @@ public class LogService {
                 }
 
                 index++;
-            }
-
-            Map<Long, String> noMatchMap = logRepository.getLogNoMatchFormatTypeMap();
-
-            if (!noMatchMap.isEmpty()) {
-                writer.newLine();
-            }
-
-            for (long line : noMatchMap.keySet()) {
-                writer.write(String.valueOf(line));
-                writer.newLine();
-                writer.write(noMatchMap.get(line));
-                writer.newLine();
             }
 
             writer.close();

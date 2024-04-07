@@ -31,6 +31,9 @@ public class LogDecompressService {
     @Value("${logcompressor.error.stacktrace.size}")
     private int STACKTRACE_SIZE;
 
+    @Value("${logcompressor.debug.print.line.multiple}")
+    private int DEBUG_LINE_MULTIPLE;
+
     private final LogRepository logRepository;
 
     private static final Log logger = LogFactory.getLog(LogDecompressService.class);
@@ -84,11 +87,6 @@ public class LogDecompressService {
                 }
             }
 
-            while ((line = reader.readLine()) != null) {
-                String value = reader.readLine();
-                logRepository.getLogNoMatchFormatTypeMap().put(Long.valueOf(line), value);
-            }
-
             reader.close();
         } catch (Exception e) {
             if (reader != null) {
@@ -111,8 +109,8 @@ public class LogDecompressService {
     private void exportDecompressedLog(LogFormat logFormat) throws IOException {
         String path = "src/main/resources/" + DECOMPRESSED_LOG_FILENAME;
 
-        int totalLines = logRepository.getLogMessageFormatTypeList().get(0).size() + logRepository.getLogNoMatchFormatTypeMap().size();
-        int index = 0;
+        int totalLines = logRepository.getLogMessageFormatTypeList().get(0).size(); // all lists should have the same size
+        logger.debug("Total lines in compressed file: " + totalLines);
         int currentLine = 0;
 
         BufferedWriter writer = null;
@@ -120,15 +118,6 @@ public class LogDecompressService {
             writer = new BufferedWriter(new FileWriter(path));
 
             while (currentLine < totalLines) {
-                String noMatchObj = logRepository.getLogNoMatchFormatTypeMap().get((long) currentLine);
-                if (noMatchObj != null) {
-                    if (!NEWLINE_MARKER.equals(noMatchObj)) {
-                        writer.write(noMatchObj);
-                    }
-                    writer.newLine();
-                    currentLine++;
-                    continue;
-                }
                 String line = String.valueOf(logFormat.getFormat()); // need a copy
                 line = line.replaceAll("\\b(rep|num|numf|dict|msg)\\b", "%s");
                 List<String> replaceList = new ArrayList<>();
@@ -147,14 +136,15 @@ public class LogDecompressService {
                         }
                     } else if (LogFormatType.NUM.getName().equals(formatType) || LogFormatType.NUMF.getName().equals(formatType)) {
                         LogNumericFormatType numObj = logRepository.getLogNumericFormatTypeList().get(numGroup++);
-                        numObj.setCurrent(numObj.getCurrent() + numObj.getDeltaList().get(index));
+                        numObj.setCurrent(numObj.getCurrent() + numObj.getDeltaList().get(currentLine));
                         replaceList.add(numObj.formatCurrentLikeKey());
                     } else if (LogFormatType.DICT.getName().equals(formatType)) {
                         LogDictionaryFormatType dictObj = logRepository.getLogDictionaryFormatTypeList().get(dictGroup++);
-                        long currentOrder = dictObj.getOrderList().get(index);
+                        long currentOrder = dictObj.getOrderList().get(currentLine);
                         replaceList.add(dictObj.getKeyList().get((int) currentOrder));
                     } else if (LogFormatType.MSG.getName().equals(formatType)) {
-                        String msgObj = logRepository.getLogMessageFormatTypeList().get(msgGroup++).get(index);
+                        String msgObj = logRepository.getLogMessageFormatTypeList().get(msgGroup++).get(currentLine);
+                        msgObj = msgObj.replace(NEWLINE_MARKER, System.lineSeparator());
                         replaceList.add(msgObj);
                     }
                 }
@@ -165,7 +155,9 @@ public class LogDecompressService {
                 writer.newLine();
 
                 currentLine++;
-                index++;
+                if (currentLine % DEBUG_LINE_MULTIPLE == 0) {
+                    logger.debug("Current line read: " + currentLine);
+                }
             }
 
             writer.close();

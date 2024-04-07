@@ -1,9 +1,6 @@
 package com.enach.logcompressor.repository;
 
-import com.enach.logcompressor.model.LogFormat;
-import com.enach.logcompressor.model.LogDictionaryFormatType;
-import com.enach.logcompressor.model.LogNumericFormatType;
-import com.enach.logcompressor.model.LogRepetitiveFormatType;
+import com.enach.logcompressor.model.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -53,9 +50,6 @@ public class LogRepository implements ApplicationRunner {
 	// msg
 	private final List<List<String>> logMessageFormatTypeList = new ArrayList<>();
 
-	// lines that do not match any format
-	private final Map<Long, String> logNoMatchFormatTypeMap = new LinkedHashMap<>();
-
 	// === /\ FORMAT TYPES /\ ===
 
     @Override
@@ -72,15 +66,19 @@ public class LogRepository implements ApplicationRunner {
 				line = reader.readLine();
 				String format = line;
 				LogFormat logFormat = new LogFormat(regex, format, LINE_SEPARATORS);
+				if (!LogFormatType.MSG.getName().equals(logFormat.getFormatTypeList().get(logFormat.getFormatTypeList().size() - 1))) {
+					logger.error("All line formats have to finish with 'msg'!");
+					throw new Exception();
+				}
                 logFormatMap.put(name, logFormat);
 			}
 			reader.close();
-		} catch (IOException e1) {
+		} catch (Exception e1) {
 			try {
 				if (reader != null) {
 					reader.close();
 				}
-			} catch (IOException e2) {
+			} catch (Exception e2) {
 				// ignored
 			}
 			logger.error("Error reading log formats file");
@@ -93,6 +91,5 @@ public class LogRepository implements ApplicationRunner {
 		logNumericFormatTypeList.clear();
 		logDictionaryFormatTypeList.clear();
 		logMessageFormatTypeList.clear();
-		logNoMatchFormatTypeMap.clear();
 	}
 }
