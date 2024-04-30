@@ -9,14 +9,12 @@
 2015-07-29 17:41:41,649 - INFO  [main:QuorumPeer@933] - minSessionTimeout set to -1
 2015-07-29 17:41:41,649 - ERROR [main:QuorumPeer@944] - maxSessionTimeout set to -1
 2015-07-29 17:41:41,649 - ERROR [main:QuorumPeer@959] - initLimit set to 10
+Exception found
 2015-07-29 17:41:41,680 - INFO  [main:QuorumPeer@429] - currentEpoch not found! Creating with a reasonable default of 0. This should only happen when you are upgrading your installation
 2015-07-29 17:41:41,683 - INFO  [main:QuorumPeer@444] - acceptedEpoch not found! Creating with a reasonable default of 0. This should only happen when you are upgrading your installation
 2015-07-30 17:41:41,692 - INFO  [Thread-1:QuorumCnxManager$Listener@486] - My election bind port: 0.0.0.0/0.0.0.0:3888
-Exception caused by: absolutely nothing
 2015-07-30 17:41:41,719 - INFO  [QuorumPeer[myid=1]/0:0:0:0:0:0:0:0:2181:FastLeaderElection@740] - New election. My id =  1, proposed zxid=0x0
 2015-07-29 17:41:41,728 - INFO  [WorkerReceiver[myid=1]:FastLeaderElection@542] - Notification: 1 (n.leader), 0x0 (n.zxid), 0x1 (n.round), LOOKING (n.state), 1 (n.sid), 0x0 (n.peerEPoch), LOOKING (my state)
 2015-07-29 17:41:41,733 - WARN  [WorkerSender[myid=1]:QuorumCnxManager@368] - Cannot open channel to 2 at election address /10.10.34.12:3888
 2015-07-30 17:41:41,738 - WARN  [WorkerSender[myid=1]:QuorumCnxManager@368] - Cannot open channel to 3 at election address /10.10.34.13:3888
 2015-07-30 17:41:41,932 - WARN  [QuorumPeer[myid=1]/0:0:0:0:0:0:0:0:2181:QuorumCnxManager@368] - Cannot open channel to 2 at election address /10.10.34.12:3888
-
-lol

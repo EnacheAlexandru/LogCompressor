@@ -1,4 +1,4 @@
-rep num - dict [dict:dict@num] - msg
+zookeeper
 2015-07-29
 13
 2015-07-30
@@ -139,7 +139,7 @@ binding to port 0.0.0.0/0.0.0.0:2181
 tickTime set to 2000
 minSessionTimeout set to -1
 maxSessionTimeout set to -1
-initLimit set to 10
+initLimit set to 10$n$Exception found
 currentEpoch not found! Creating with a reasonable default of 0. This should only happen when you are upgrading your installation
 acceptedEpoch not found! Creating with a reasonable default of 0. This should only happen when you are upgrading your installation
 My election bind port: 0.0.0.0/0.0.0.0:3888
@@ -148,10 +148,3 @@ Notification: 1 (n.leader), 0x0 (n.zxid), 0x1 (n.round), LOOKING (n.state), 1 (n
 Cannot open channel to 2 at election address /10.10.34.12:3888
 Cannot open channel to 3 at election address /10.10.34.13:3888
 Cannot open channel to 2 at election address /10.10.34.12:3888
-
-14
-Exception caused by: absolutely nothing
-20
-$n$
-21
-lol
