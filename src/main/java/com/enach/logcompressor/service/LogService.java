@@ -93,6 +93,12 @@ public class LogService {
             }
 
             reader.close();
+
+            List<String> lastMsgGroup = logRepository.getLogMessageFormatTypeList().get(logRepository.getLogMessageFormatTypeList().size() - 1);
+            if (lastMsgGroup.get(lastMsgGroup.size() - 1).isEmpty()) {
+                lastMsgGroup.set(lastMsgGroup.size() - 1, NEWLINE_MARKER);
+            }
+
         } catch (Exception e) {
             if (reader != null) {
                 reader.close();
@@ -196,8 +202,9 @@ public class LogService {
     private void handleLogNoMatchFormatType(String line) {
         List<String> msgLastGroupList = logRepository.getLogMessageFormatTypeList().get(logRepository.getLogMessageFormatTypeList().size() - 1);
         String lastMsg = msgLastGroupList.get(msgLastGroupList.size() - 1);
-        lastMsg += NEWLINE_MARKER + line;
+        lastMsg += NEWLINE_MARKER;
         msgLastGroupList.set(msgLastGroupList.size() - 1, lastMsg);
+        msgLastGroupList.add(line);
     }
 
     private void exportCompressedLog(LogFormat logFormat) throws IOException {

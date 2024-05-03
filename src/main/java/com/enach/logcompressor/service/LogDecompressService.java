@@ -101,9 +101,10 @@ public class LogDecompressService {
     private void exportDecompressedLog(LogFormat logFormat) throws IOException {
         String path = "src/main/resources/" + DECOMPRESSED_LOG_FILENAME;
 
-        int totalLines = logRepository.getLogMessageFormatTypeList().get(0).size(); // all lists should have the same size
+        int totalLines = logRepository.getLogNumericFormatTypeList().get(0).getDeltaList().size();
         logger.debug("Total lines in compressed file: " + totalLines);
         int currentLine = 0;
+        int lastMsgCurrentLine = 0;
 
         BufferedWriter writer = null;
         try {
@@ -117,6 +118,7 @@ public class LogDecompressService {
                 int numGroup = 0;
                 int dictGroup = 0;
                 int msgGroup = 0;
+                boolean containsNewline = false; // used for last msg group
                 for (String formatType : logFormat.getFormatTypeList()) {
                     if (LogFormatType.REP.getName().equals(formatType)) {
                         List<LogRepetitiveFormatType> repObjList = logRepository.getLogRepetitiveFormatTypeList().get(repGroup++);
@@ -135,8 +137,17 @@ public class LogDecompressService {
                         long currentOrder = dictObj.getOrderList().get(currentLine);
                         replaceList.add(dictObj.getKeyList().get((int) currentOrder));
                     } else if (LogFormatType.MSG.getName().equals(formatType)) {
-                        String msgObj = logRepository.getLogMessageFormatTypeList().get(msgGroup++).get(currentLine);
-                        msgObj = msgObj.replace(NEWLINE_MARKER, System.lineSeparator());
+                        String msgObj;
+                        if (msgGroup == logRepository.getLogMessageFormatTypeList().size() - 1) { // last msg group
+                            msgObj = logRepository.getLogMessageFormatTypeList().get(msgGroup++).get(lastMsgCurrentLine++);
+                            if (msgObj.contains(NEWLINE_MARKER)) {
+                                containsNewline = true;
+                                msgObj = msgObj.replace(NEWLINE_MARKER, System.lineSeparator());
+                            }
+                        } else {
+                            msgObj = logRepository.getLogMessageFormatTypeList().get(msgGroup++).get(currentLine);
+                        }
+
                         replaceList.add(msgObj);
                     }
                 }
@@ -144,9 +155,25 @@ public class LogDecompressService {
                 line = String.format(line, replaceList.toArray());
 
                 writer.write(line);
-                writer.newLine();
+
+                if (!containsNewline) {
+                    writer.newLine();
+                }
+
+                while (containsNewline && lastMsgCurrentLine < logRepository.getLogMessageFormatTypeList().get(msgGroup - 1).size()) {
+                    String msgObj = logRepository.getLogMessageFormatTypeList().get(msgGroup - 1).get(lastMsgCurrentLine++);
+                    if (msgObj.contains(NEWLINE_MARKER)) {
+                        msgObj = msgObj.replace(NEWLINE_MARKER, System.lineSeparator());
+                        writer.write(msgObj);
+                    } else {
+                        containsNewline = false;
+                        writer.write(msgObj);
+                        writer.newLine();
+                    }
+                }
 
                 currentLine++;
+
                 if (currentLine % DEBUG_LINE_MULTIPLE == 0) {
                     logger.debug("Current line read: " + currentLine);
                 }

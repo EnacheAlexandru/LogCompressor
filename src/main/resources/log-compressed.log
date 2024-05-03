@@ -139,7 +139,8 @@ binding to port 0.0.0.0/0.0.0.0:2181
 tickTime set to 2000
 minSessionTimeout set to -1
 maxSessionTimeout set to -1
-initLimit set to 10$n$Exception found
+initLimit set to 10$n$
+Exception found
 currentEpoch not found! Creating with a reasonable default of 0. This should only happen when you are upgrading your installation
 acceptedEpoch not found! Creating with a reasonable default of 0. This should only happen when you are upgrading your installation
 My election bind port: 0.0.0.0/0.0.0.0:3888

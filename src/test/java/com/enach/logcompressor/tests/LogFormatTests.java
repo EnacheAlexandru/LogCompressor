@@ -58,6 +58,21 @@ public class LogFormatTests {
         testByLogFormat("zookeeper_100L.log");
     }
 
+    @Test
+    public void testCompressSpark() throws Exception {
+        testByLogFormat("spark_100L.log");
+    }
+
+    @Test
+    public void testCompressZookeeperEndsWithNewlines() throws Exception {
+        testByLogFormat("zookeeper_ends_with_newlines.log");
+    }
+
+    @Test
+    public void testCompressZookeeperOneLine() throws Exception {
+        testByLogFormat("zookeeper_1L.log");
+    }
+
     private void testByLogFormat(String filePath) throws Exception {
 
         // COMPRESS
