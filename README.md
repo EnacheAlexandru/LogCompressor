@@ -73,3 +73,9 @@ Different parameters can be changed inside the configuration file `application.p
 - `logcompressor.compressed.log.filename=log-compressed.log` - name of the intermediate file after compression
 - `logcompressor.decompressed.log.filename=log-decompressed.log` - name of the the reconstructed log file after decompression
 - `logcompressor.debug.print.line.multiple=100000` - used for debugging and it is only relevant when the application's log level is set to `DEBUG`. It logs the current read line during compression/decompression in multiples of the set value. Lower values mean higher granularity for better investigation, but may lead to a decrease performance regarding speed
+
+## Dataset
+
+The dataset that was used in testing this application and which is located in the `resources` directory of `LogComp` was retrieved from [Loghub](https://github.com/logpai/loghub), which is a GitHub repository that contains log file samples collected from systems that are freely available for research or academic work.
+
+Loghub paper citation: Jieming Zhu, Shilin He, Pinjia He, Jinyang Liu, Michael R. Lyu. Loghub: A Large  Collection of System Log Datasets for AI-driven Log Analytics. In ISSRE, 2023.
